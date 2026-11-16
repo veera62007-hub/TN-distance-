@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-CSV_FILE = "tamilnadu.csv"
+CSV_FILE = "tamilnadu2.csv"
 
-st.set_page_config(page_title="TN Distance Finder", page_icon="🛣️")
+st.set_page_config(page_title="TN Distance Finder", page_icon="🚗")
 
 st.markdown("""
 <style>
@@ -32,7 +32,7 @@ div[role="dialog"] {background:#1e293b; color:#f1f5f9; border-radius:24px;}
 </style>
 <div class="hero">
   <h1>🚗 Tamil Nadu Distance Finder</h1>
-  <p>Estimated road distance between district headquarters</p>
+  <p>Estimated road distance between districts and cities</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -42,15 +42,20 @@ def load_data():
 
 df = load_data()
 
-distances, hq = {}, {}
+distances, city = {}, {}
 for _, r in df.iterrows():
-    a, b, d = r["From_District"], r["To_District"], r["Estimated_Road_Distance_KM"]
+    a, b = r["From_District"], r["To_District"]
+    d = r["Estimated_Road_Distance_KM"]
     distances[(a, b)] = d
     distances[(b, a)] = d
-    hq[a] = r["From_Headquarters"]
-    hq[b] = r["To_Headquarters"]
+    city[a] = r["From_City"]
+    city[b] = r["To_City"]
 
-districts = sorted(hq.keys())
+districts = sorted(city.keys())
+
+# dropdown label: "Kanniyakumari (Nagercoil)" when city differs from district
+def label(d):
+    return d if city[d] == d else f"{d} ({city[d]})"
 
 if "from_d" not in st.session_state:
     st.session_state.from_d = "Chennai" if "Chennai" in districts else districts[0]
@@ -64,7 +69,7 @@ def swap():
 @st.dialog("Estimated Road Distance")
 def show_result(a, b, km):
     st.markdown(f'<div class="big">{km} km</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="route">📍 <b>{hq[a]}</b> → <b>{hq[b]}</b></div>',
+    st.markdown(f'<div class="route">📍 <b>{city[a]}</b> → <b>{city[b]}</b></div>',
                 unsafe_allow_html=True)
     st.markdown(
         f'<div class="pills"><span class="pill">🕒 ~{km/50:.1f} hrs at 50 km/h</span>'
@@ -72,15 +77,15 @@ def show_result(a, b, km):
     st.markdown('<div class="note">Estimate (straight-line × 1.22), not an exact route.</div>',
                 unsafe_allow_html=True)
 
-st.selectbox("📍 From District", districts, key="from_d")
+st.selectbox("📍 From", districts, key="from_d", format_func=label)
 st.button("⇅ Swap", on_click=swap)
-st.selectbox("🏁 To District", districts, key="to_d")
+st.selectbox("🏁 To", districts, key="to_d", format_func=label)
 
 st.write("")
 if st.button("Find Distance 🚀"):
     a, b = st.session_state.from_d, st.session_state.to_d
     if a == b:
-        st.warning("Please choose two different districts.")
+        st.warning("Please choose two different places.")
     else:
         km = distances.get((a, b))
         if km is None:
