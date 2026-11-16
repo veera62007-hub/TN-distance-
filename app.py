@@ -42,7 +42,7 @@ st.markdown("""
   background:linear-gradient(90deg,#f97316,#ec4899);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
 
-.stSelectbox label p, .stNumberInput label p, .stSlider label p {color:#e2e8f0 !important; font-weight:600;}
+.stSelectbox label p, .stNumberInput label p {color:#e2e8f0 !important; font-weight:600;}
 div[data-baseweb="select"] > div {background:rgba(255,255,255,.08) !important;
   border:1px solid rgba(255,255,255,.18) !important; border-radius:14px !important; color:white !important;}
 
@@ -64,21 +64,12 @@ div[role="dialog"] {background:#1e293b; color:#f1f5f9; border-radius:24px;}
   background:linear-gradient(90deg,#f97316,#ec4899);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
 .route {text-align:center; font-size:1.05rem; margin:8px 0 14px;}
-.modes {display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
-.mode {flex:1; min-width:90px; text-align:center; padding:10px 6px; border-radius:16px;
-  background:rgba(139,92,246,.22); font-size:.8rem;}
-.mode b {display:block; font-size:1rem;}
 .note {text-align:center; font-size:.75rem; opacity:.6; margin-top:12px;}
-
-.ncard {margin:8px 0;}
-.nrow {display:flex; justify-content:space-between; font-weight:600; font-size:.9rem;}
-.nbar {height:8px; border-radius:99px; background:rgba(255,255,255,.12); margin-top:6px; overflow:hidden;}
-.nfill {height:100%; border-radius:99px; background:linear-gradient(90deg,#f97316,#ec4899);}
 .small {font-size:.8rem; opacity:.7; color:#e2e8f0; margin:6px 0 2px;}
 </style>
 <div class="hero">
   <h1>🚗 Tamil Nadu Distance Finder</h1>
-  <p>Road distance, travel time & trip cost between districts</p>
+  <p>Road distance and trip cost between districts</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -106,18 +97,11 @@ def label(d):
     return d if city[d] == d else f"{d} ({city[d]})"
 
 
-def fmt_time(hours):
-    m = round(hours * 60)
-    return f"{m // 60}h {m % 60:02d}m"
-
-
 # ---------- state ----------
 if "from_d" not in st.session_state:
     st.session_state.from_d = "Chennai" if "Chennai" in districts else districts[0]
 if "to_d" not in st.session_state:
     st.session_state.to_d = "Madurai" if "Madurai" in districts else districts[1]
-if "near_d" not in st.session_state:
-    st.session_state.near_d = st.session_state.from_d
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -137,22 +121,15 @@ def show_result(a, b, km):
     st.markdown(f'<div class="big">{km} km</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="route">📍 <b>{city[a]}</b> → <b>{city[b]}</b></div>',
                 unsafe_allow_html=True)
-    st.markdown(
-        f'<div class="modes">'
-        f'<div class="mode">🚗 Car<b>{fmt_time(km/55)}</b></div>'
-        f'<div class="mode">🚌 Bus<b>{fmt_time(km/42)}</b></div>'
-        f'<div class="mode">🏍️ Bike<b>{fmt_time(km/45)}</b></div>'
-        f'</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="route">🔁 Round trip: <b>{km*2} km</b></div>',
                 unsafe_allow_html=True)
     st.caption("Copy & share:")
-    st.code(f"{city[a]} → {city[b]}: ~{km} km by road "
-            f"(Car {fmt_time(km/55)}, Bus {fmt_time(km/42)})", language=None)
+    st.code(f"{city[a]} → {city[b]}: ~{km} km by road", language=None)
     st.markdown('<div class="note">Estimate (straight-line × 1.22), not an exact route.</div>',
                 unsafe_allow_html=True)
 
 
-tab1, tab2, tab3 = st.tabs(["📍 Distance", "🧭 Nearest", "⛽ Trip Cost"])
+tab1, tab2 = st.tabs(["📍 Distance", "⛽ Trip Cost"])
 
 # ================= TAB 1 =================
 with tab1:
@@ -184,7 +161,6 @@ with tab1:
                 del hist[4:]
                 show_result(a, b, km)
 
-    # quick routes
     popular = [("Chennai", "Madurai"), ("Chennai", "Coimbatore"),
                ("Madurai", "Coimbatore"), ("Chennai", "Tiruchirappalli")]
     popular = [p for p in popular if p[0] in city and p[1] in city]
@@ -202,32 +178,10 @@ with tab1:
 
 # ================= TAB 2 =================
 with tab2:
-    st.selectbox("From which district?", districts, key="near_d", format_func=label)
-    n = st.slider("How many places?", 3, 10, 5)
-    me = st.session_state.near_d
-    others = sorted(((d, distances[(me, d)]) for d in districts if d != me),
-                    key=lambda t: t[1])
-    top = others[:n]
-    mx = max(k for _, k in top)
-    html = ""
-    for d, k in top:
-        w = max(6, int(k / mx * 100))
-        html += (f'<div class="glass ncard"><div class="nrow"><span>{label(d)}</span>'
-                 f'<span>{k} km</span></div>'
-                 f'<div class="nbar"><div class="nfill" style="width:{w}%"></div></div></div>')
-    st.markdown(html, unsafe_allow_html=True)
-    far = others[-1]
-    st.caption(f"Farthest from {city[me]}: {label(far[0])} ({far[1]} km)")
-    with st.expander("See all districts"):
-        st.dataframe(pd.DataFrame(others, columns=["District", "Distance (km)"]),
-                     hide_index=True, use_container_width=True)
-
-# ================= TAB 3 =================
-with tab3:
     a, b = st.session_state.from_d, st.session_state.to_d
     km = distances.get((a, b)) if a != b else None
     if km is None:
-        st.info("Distance tab-ல ரெண்டு வேற வேற district தேர்ந்தெடுங்க.")
+        st.info("Pick two different districts in the Distance tab first.")
     else:
         st.markdown(f'<div class="glass"><b>{city[a]} → {city[b]}</b> · {km} km</div>',
                     unsafe_allow_html=True)
@@ -243,4 +197,4 @@ with tab3:
             f'<div class="big">₹{cost:,.0f}</div>'
             f'<div class="kmrow">{total_km} km · {litres:.1f} litres</div></div>',
             unsafe_allow_html=True)
-        st.caption("Fuel price default is approximate, please edit to today's price.")
+        st.caption("Fuel price default is approximate, please edit it to today's price.")
