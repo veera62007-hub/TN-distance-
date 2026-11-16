@@ -3,7 +3,7 @@ import pandas as pd
 
 CSV_FILE = "tamilnadu.csv"
 
-st.set_page_config(page_title="TN Distance Finder", page_icon="🚗")
+st.set_page_config(page_title="TN Distance Finder", page_icon="🛣️")
 
 st.markdown("""
 <style>
