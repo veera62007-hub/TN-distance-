@@ -26,6 +26,13 @@ for _, row in df.iterrows():
 
 districts = sorted(hq.keys())
 
+@st.dialog("Estimated Road Distance")
+def show_result(from_d, to_d, km):
+    st.success(f"Estimated road distance: {km} km")
+    st.write(f"From **{hq[from_d]}** to **{hq[to_d]}**")
+    st.write(f"Approx. driving time at 50 km/h: {km/50:.1f} hours")
+    st.caption("This is an estimate (straight-line distance x 1.22), not an exact route distance.")
+
 col1, col2 = st.columns(2)
 with col1:
     from_d = st.selectbox("From District", districts,
@@ -42,7 +49,4 @@ if st.button("Find Distance"):
         if km is None:
             st.error("Distance not found for this pair.")
         else:
-            st.success(f"Estimated road distance: {km} km")
-            st.write(f"From **{hq[from_d]}** to **{hq[to_d]}**")
-            st.write(f"Approx. driving time at 50 km/h: {km/50:.1f} hours")
-            st.caption("This is an estimate (straight-line distance x 1.22), not an exact route distance.")
+            show_result(from_d, to_d, km)
