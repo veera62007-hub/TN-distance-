@@ -54,7 +54,6 @@ div.stButton > button:hover {transform:translateY(-2px); border-color:#ec4899; c
   background:linear-gradient(90deg,#f97316,#ec4899) !important;
   box-shadow:0 8px 24px rgba(236,72,153,.4);}
 [class*="st-key-swap"] button {border-radius:999px; font-size:.9rem;}
-[class*="st-key-chip"] button {font-size:.75rem; padding:.4rem .3rem; border-radius:999px;}
 
 button[data-baseweb="tab"] {color:#cbd5e1; font-weight:600;}
 button[data-baseweb="tab"][aria-selected="true"] {color:white;}
@@ -65,7 +64,6 @@ div[role="dialog"] {background:#1e293b; color:#f1f5f9; border-radius:24px;}
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
 .route {text-align:center; font-size:1.05rem; margin:8px 0 14px;}
 .note {text-align:center; font-size:.75rem; opacity:.6; margin-top:12px;}
-.small {font-size:.8rem; opacity:.7; color:#e2e8f0; margin:6px 0 2px;}
 </style>
 <div class="hero">
   <h1>🚗 Tamil Nadu Distance Finder</h1>
@@ -102,18 +100,11 @@ if "from_d" not in st.session_state:
     st.session_state.from_d = "Chennai" if "Chennai" in districts else districts[0]
 if "to_d" not in st.session_state:
     st.session_state.to_d = "Madurai" if "Madurai" in districts else districts[1]
-if "history" not in st.session_state:
-    st.session_state.history = []
 
 
 def swap():
     st.session_state.from_d, st.session_state.to_d = (
         st.session_state.to_d, st.session_state.from_d)
-
-
-def set_route(a, b):
-    st.session_state.from_d = a
-    st.session_state.to_d = b
 
 
 @st.dialog("Trip Details")
@@ -154,27 +145,7 @@ with tab1:
                 unsafe_allow_html=True)
 
             if st.button("View Trip Details 🚀", key="go1"):
-                hist = st.session_state.history
-                if (a, b) in hist:
-                    hist.remove((a, b))
-                hist.insert(0, (a, b))
-                del hist[4:]
                 show_result(a, b, km)
-
-    popular = [("Chennai", "Madurai"), ("Chennai", "Coimbatore"),
-               ("Madurai", "Coimbatore"), ("Chennai", "Tiruchirappalli")]
-    popular = [p for p in popular if p[0] in city and p[1] in city]
-
-    st.markdown('<div class="small">⚡ Quick routes</div>', unsafe_allow_html=True)
-    cols = st.columns(2)
-    for i, (x, y) in enumerate(popular):
-        cols[i % 2].button(f"{x} → {y}", key=f"chip_p{i}", on_click=set_route, args=(x, y))
-
-    if st.session_state.history:
-        st.markdown('<div class="small">🕘 Recent searches</div>', unsafe_allow_html=True)
-        cols = st.columns(2)
-        for i, (x, y) in enumerate(st.session_state.history):
-            cols[i % 2].button(f"{x} → {y}", key=f"chip_h{i}", on_click=set_route, args=(x, y))
 
 # ================= TAB 2 =================
 with tab2:
