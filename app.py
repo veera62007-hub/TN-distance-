@@ -4,7 +4,7 @@ import pandas as pd
 CSV_FILE = "tamilnadu.csv"
 
 st.set_page_config(page_title="Tamil Nadu Distance Finder", page_icon="🚗")
-st.title("🚗 Tamil Nadu District Distance Finder")
+st.title("🛣️ Tamil Nadu District Distance Finder")
 st.caption("Estimated road distance between district headquarters")
 
 @st.cache_data
